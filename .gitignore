@@ -11,3 +11,5 @@ venv/
 # Python specific files
 __pycache__/
 *.pyc
+.DS_Store
+.ipynb_checkpoints

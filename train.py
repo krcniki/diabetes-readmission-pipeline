@@ -1,19 +1,22 @@
 import pandas as pd
+import json
+import os
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
-# --- UPDATED IMPORTS (Using 'from src import ...') ---
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.over_sampling import SMOTE
+
+# Custom modules
 from src import preprocess
 from src import feature_engineering
 from src import evaluate
-# ----------------------------------------------------
 
 def main():
     # 1. Load and Clean
-    # --- UPDATED PATH HERE ---
     df = preprocess.load_and_clean_data('data/diabetic_data.csv')
     
     # 2. Feature Engineering
@@ -35,10 +38,31 @@ def main():
     )
     
     # 5. Define Models
+    
+    # Default configuration for Random Forest
+    rf_params = {
+        'random_state': 42, 
+        'class_weight': 'balanced', 
+        'n_jobs': -1
+    }
+
+    # Check if 'best_params.json' exists (created by tune.py)
+    if os.path.exists('best_params.json'):
+        with open('best_params.json', 'r') as f:
+            tuned_params = json.load(f)
+            # Merge tuned params into the default config
+            rf_params.update(tuned_params)
+            print(f"\n--> LOADED TUNED PARAMS FOR RF: {tuned_params}")
+    else:
+        print("\n--> Using DEFAULT parameters for RF (Run tune.py to optimize)")
+
     models = {
         'Logistic Regression': LogisticRegression(random_state=42, class_weight='balanced', max_iter=1000),
         'Decision Tree': DecisionTreeClassifier(random_state=42, class_weight='balanced'),
-        'Random Forest': RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1),
+        
+        # We unpack the dictionary (**rf_params) to inject the settings
+        'Random Forest': RandomForestClassifier(**rf_params),
+        
         'Gradient Boosting': GradientBoostingClassifier(random_state=42)
     }
     
@@ -49,9 +73,10 @@ def main():
     for name, model in models.items():
         print(f"\nTraining {name}...")
         
-        # Create full pipeline
-        pipe = Pipeline([
+        # Use ImbPipeline to ensure SMOTE is only applied to the training folds
+        pipe = ImbPipeline([
             ('preprocessor', preprocessor),
+            ('smote', SMOTE(random_state=42)), # Synthesizes new examples of the minority class
             ('model', model)
         ])
         
