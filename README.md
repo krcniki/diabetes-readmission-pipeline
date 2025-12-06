@@ -1,13 +1,13 @@
 # ML_Fall2025_Project
 
-## 📌 Project Overview
+## Project Overview
 This project is an end-to-end machine learning pipeline designed to predict if a diabetic patient will be readmitted to the hospital within **30 days** of discharge.
 
 The primary challenge of this dataset is severe **Class Imbalance** (only 11.1% of patients are readmitted). Standard models suffer from the **"Accuracy Paradox,"** achieving 91% accuracy by simply ignoring all readmitted patients.
 
 **Goal:** This project solves that paradox by trading "Vanity Accuracy" for "Clinical Utility" (Recall). I implemented a custom feature engineering pipeline, Synthetic Minority Over-sampling (SMOTE), and F1-score optimization to build a model that actually identifies at-risk patients.
 
-## 🏗 Architecture
+## Architecture
 This project uses a modular production-style structure designed for reproducibility:
 
 ```text
